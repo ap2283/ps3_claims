@@ -23,5 +23,25 @@ def create_sample_split(df: pd.DataFrame, id_column: str, training_frac: float =
     pd.DataFrame
         Training data with sample column containing train/test split based on IDs.
     """
+    bins = ['train', 'test']
+
+    # Convert training fraction to integer
+    training_frac = int(training_frac*100)
     
+    # Function to hash a value and convert to an integer
+    def hash_to_int(value):
+        hash_obj = hashlib.sha256(str(value).encode('utf-8'))
+        hex_digest = hash_obj.hexdigest()
+        return int(hex_digest, 16)  # convert hex string → integer
+
+    # Create hash column in dataframe
+    df['hash'] = df[id_column].apply(hash_to_int)
+    
+    # Function to assign split
+    def assign_split(hash_value: int):
+        bucket = hash_value % 100
+        return 'train' if bucket < training_frac else 'test'
+
+    df['sample'] = df[id_column].apply(assign_split)
+
     return df
