@@ -399,35 +399,32 @@ plt.show()
 
 
 #ps4 - ex5
-# 1. Create DALEX explainers for both models
+
 expl_glm = dx.Explainer(
-    t_glm1,           # benchmark GLM from earlier
-    X_test_t,         # encoded test features
-    y_test_t,         # pure premium on test set
+    t_glm1,           # benchmark  from earlier
+    X_test_t,         
+    y_test_t,         
     label="GLM benchmark",
 )
 
 expl_lgbm_constr = dx.Explainer(
-    best_lgbm_model,  # constrained LGBM from Ex 2
+    best_lgbm_model,  #  from Ex 2
     X_test_t,
     y_test_t,
     label="Constrained LGBM",
 )
 
-# 2. Pick one observation from the test set
+# 2.  one observation 
 obs_idx = 0
 x0 = X_test_t.iloc[[obs_idx]]
 
-# 3. Get Shapley decompositions
+# 3. Shapley decomp
 shap_glm = expl_glm.predict_parts(x0, type="shap")
 shap_lgbm = expl_lgbm_constr.predict_parts(x0, type="shap")
 
-# 4. Plot decompositions
+# 4. Plot
 shap_glm.plot()
-plt.title(f"Shapley decomposition for GLM (observation {obs_idx})")
-plt.show()
 
 shap_lgbm.plot()
-plt.title(f"Shapley decomposition for constrained LGBM (observation {obs_idx})")
-plt.show()
+
 # %%
