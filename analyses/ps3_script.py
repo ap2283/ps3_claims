@@ -10,6 +10,7 @@ from sklearn.metrics import auc
 from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, SplineTransformer, StandardScaler
+import dalex as dx
 
 import sys
 import os
@@ -225,7 +226,7 @@ cv = GridSearchCV(
     cv=3,
     verbose=0,
     n_jobs=-1,
-    force_col_wise=True,
+    #force_col_wise=True,
 )
 cv.fit(X_train_t, y_train_t, estimate__sample_weight=w_train_t)
 
@@ -326,7 +327,7 @@ constrained_lgbm_estimator = lgb.LGBMRegressor(
     n_estimators=1000,
     learning_rate=0.05,
     monotone_constraints=monotone_constraints,
-    force_col_wise=True,
+    #force_col_wise=True,
 )
 
 constrained_lgbm_pipeline = Pipeline(
@@ -387,10 +388,46 @@ best_lgbm_model.fit(
     eval_names=['Train', 'Test'],
     eval_sample_weight=[w_train_t, w_test_t],
     eval_metric='tweedie', # Explicitly track Tweedie deviance
-    verbose=False
+    #verbose=False
 )
 
 ax = lgb.plot_metric(best_lgbm_model, metric='tweedie', figsize=(10, 6))
 ax.set_title("Learning Curve: Convergence of Tweedie Deviance")
 ax.set_ylabel("Tweedie Deviance")
 plt.show()
+
+
+
+#ps4 - ex5
+# 1. Create DALEX explainers for both models
+expl_glm = dx.Explainer(
+    t_glm1,           # benchmark GLM from earlier
+    X_test_t,         # encoded test features
+    y_test_t,         # pure premium on test set
+    label="GLM benchmark",
+)
+
+expl_lgbm_constr = dx.Explainer(
+    best_lgbm_model,  # constrained LGBM from Ex 2
+    X_test_t,
+    y_test_t,
+    label="Constrained LGBM",
+)
+
+# 2. Pick one observation from the test set
+obs_idx = 0
+x0 = X_test_t.iloc[[obs_idx]]
+
+# 3. Get Shapley decompositions
+shap_glm = expl_glm.predict_parts(x0, type="shap")
+shap_lgbm = expl_lgbm_constr.predict_parts(x0, type="shap")
+
+# 4. Plot decompositions
+shap_glm.plot()
+plt.title(f"Shapley decomposition for GLM (observation {obs_idx})")
+plt.show()
+
+shap_lgbm.plot()
+plt.title(f"Shapley decomposition for constrained LGBM (observation {obs_idx})")
+plt.show()
+# %%
