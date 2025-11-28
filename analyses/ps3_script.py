@@ -415,8 +415,8 @@ expl_lgbm_constr = dx.Explainer(
 )
 
 # 2.  one observation 
-obs_idx = 0
-x0 = X_test_t.iloc[[obs_idx]]
+ob = 0
+x0 = X_test_t.iloc[[ob]]
 
 # 3. Shapley decomp
 shap_glm = expl_glm.predict_parts(x0, type="shap")
